@@ -1,0 +1,41 @@
+CREATE DATABASE axiata_local
+    WITH
+    OWNER = postgres
+    ENCODING = 'UTF8'
+    LOCALE_PROVIDER = 'libc'
+    CONNECTION LIMIT = -1
+    IS_TEMPLATE = False;
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE IF NOT EXISTS posts (
+"id" UUID PRIMARY KEY,
+"title" varchar NOT NULL,
+"content" text NOT NULL,
+"status" boolean NOT NULL,
+"publish_date" timestamp NULL,
+"created_by" varchar NULL,
+"created_date" timestamp NULL,
+"updated_by" varchar NULL,
+"updated_date" timestamp NULL
+);
+
+CREATE TABLE IF NOT EXISTS tags (
+"id" UUID PRIMARY KEY,
+"label" varchar NOT NULL,
+CONSTRAINT label_uniq UNIQUE (label)
+);
+
+CREATE TABLE IF NOT EXISTS posts_tags (
+post_id UUID NOT NULL,
+tag_id UUID NOT NULL,
+CONSTRAINT fk_post_id FOREIGN KEY(post_id) REFERENCES posts(id) on delete cascade,
+CONSTRAINT fk_tag_id FOREIGN KEY(tag_id) REFERENCES tags(id) on delete cascade,
+CONSTRAINT post_tag_uniq UNIQUE (post_id, tag_id)
+);
+
+CREATE TABLE IF NOT EXISTS accounts (
+username varchar PRIMARY KEY,
+password text NOT NULL,
+role varchar NOT NULL DEFAULT 'user'
+);
