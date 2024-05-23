@@ -16,4 +16,8 @@ func Register() {
 	// router for account
 	http.HandleFunc("/register", handler.RegisterHandler)
 	http.HandleFunc("/login", handler.LoginHandler)
+
+	// router for tags
+	http.HandleFunc("/tags", handler.TagsHandler)
+	http.HandleFunc("/tags/", handler.TagsByIDHandler)
 }

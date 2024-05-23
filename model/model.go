@@ -58,6 +58,25 @@ type PostsQueryResponse struct {
 	PublishDate *time.Time `json:"publish_date"`
 }
 
+type GetAllTagResponse struct {
+	Status CommonResponse `json:"status"`
+	Data []TagsData `json:"data"`
+}
+
+type GetTagResponse struct {
+	Status CommonResponse `json:"status"`
+	Data TagsData `json:"data"`
+}
+
+type TagsData struct {
+	TagID string `json:"tag_id"`
+	Label string `json:"label"`
+}
+
+type PayloadTags struct {
+	Label string `json:"label"`
+}
+
 type PayloadRegister struct {
 	Username string `json:"username"`
 	Password string `json:"password"`

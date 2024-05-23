@@ -25,6 +25,13 @@ type IUsecase interface {
 	// accounts
 	RegisterAccount(ctx context.Context, param model.PayloadRegister) model.CommonResponse
 	Login(ctx context.Context, param model.PayloadLogin) model.LoginResponse
+
+	// tags
+	GetAllTag(ctx context.Context) model.GetAllTagResponse
+	GetTagByID(ctx context.Context, tagID uuid.UUID) model.GetTagResponse
+	StoreTag(ctx context.Context, param model.PayloadTags) model.CommonResponse
+	UpdateTagByID(ctx context.Context, tagID uuid.UUID, param model.PayloadTags) model.CommonResponse
+	DeleteTagByID(ctx context.Context, tagID uuid.UUID) model.CommonResponse
 }
 
 func New() IUsecase {

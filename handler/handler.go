@@ -21,12 +21,18 @@ type Handler struct {
 }
 
 type IHandler interface {
+	// posts
 	PostsHandler(w http.ResponseWriter, r *http.Request)
 	PostByTagHandler(w http.ResponseWriter, r *http.Request)
 	PostsByIDHandler(w http.ResponseWriter, r *http.Request)
 
+	// accounts
 	RegisterHandler(w http.ResponseWriter, r *http.Request)
 	LoginHandler(w http.ResponseWriter, r *http.Request)
+
+	// tags
+	TagsHandler(w http.ResponseWriter, r *http.Request)
+	TagsByIDHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func NewHandler() IHandler {
@@ -187,6 +193,124 @@ func (h *Handler) PostsByIDHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodDelete {
 		// handle delete by id
 		resp := h.Usecase.DeletePostByID(ctx, postID)
+		jsonData, err := json.Marshal(resp)
+		if err != nil {
+			http.Error(w, "Invalid response data", http.StatusBadRequest)
+		}
+		w.Write(jsonData)
+		return
+	}
+
+	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	return
+}
+
+// handler for tags
+func (h *Handler) TagsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	w.Header().Set("Content-Type", "application/json")
+	username, role, err := validateToken(r)
+	if role == "" || err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	// if token is valid, continue
+	// Add role to context
+    ctx = context.WithValue(ctx, utils.RoleKey, role)
+	ctx = context.WithValue(ctx, utils.UsernameKey, username)
+	r = r.WithContext(ctx)
+	if r.Method == http.MethodGet {
+		// get all posts
+		data := h.Usecase.GetAllTag(ctx)
+		jsonData, err := json.Marshal(data)
+		if err != nil {
+			http.Error(w, "Invalid response data", http.StatusBadRequest)
+		}
+		w.Write(jsonData)
+		return
+	}
+	if r.Method == http.MethodPost {
+		// save the post
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "Unable to read request body", http.StatusBadRequest)
+			return
+		}
+		defer r.Body.Close()
+
+		var payload model.PayloadTags
+		if err := json.Unmarshal(body, &payload); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+		resp := h.Usecase.StoreTag(ctx, payload)
+		jsonData, err := json.Marshal(resp)
+		if err != nil {
+			http.Error(w, "Invalid response data", http.StatusBadRequest)
+		}
+		w.Write(jsonData)
+		return
+	}
+	
+	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	return
+}
+
+func (h *Handler) TagsByIDHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	w.Header().Set("Content-Type", "application/json")
+	username, role, err := validateToken(r)
+	if role == "" || err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	// if token is valid, continue
+	// Add role to context
+    ctx = context.WithValue(ctx, utils.RoleKey, role)
+	ctx = context.WithValue(ctx, utils.UsernameKey, username)
+	r = r.WithContext(ctx)
+
+	idParam := strings.TrimPrefix(r.URL.Path, "/tags/")
+	tagID, err := uuid.Parse(idParam)
+	if err != nil {
+		http.Error(w, "Invalid tag ID", http.StatusBadRequest)
+		return
+	}
+	if r.Method == http.MethodGet {
+		// handle get by id
+		data := h.Usecase.GetTagByID(ctx, tagID)
+		jsonData, err := json.Marshal(data)
+		if err != nil {
+			http.Error(w, "Invalid response data", http.StatusBadRequest)
+		}
+		w.Write(jsonData)
+		return
+	}
+	if r.Method == http.MethodPut {
+		// handle edit by id
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "Unable to read request body", http.StatusBadRequest)
+			return
+		}
+		defer r.Body.Close()
+
+		var payload model.PayloadTags
+		if err := json.Unmarshal(body, &payload); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+		resp := h.Usecase.UpdateTagByID(ctx, tagID, payload)
+		jsonData, err := json.Marshal(resp)
+		if err != nil {
+			http.Error(w, "Invalid response data", http.StatusBadRequest)
+		}
+		w.Write(jsonData)
+		return
+	}
+	if r.Method == http.MethodDelete {
+		// handle delete by id
+		resp := h.Usecase.DeleteTagByID(ctx, tagID)
 		jsonData, err := json.Marshal(resp)
 		if err != nil {
 			http.Error(w, "Invalid response data", http.StatusBadRequest)

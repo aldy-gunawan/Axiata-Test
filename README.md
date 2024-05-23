@@ -1,6 +1,7 @@
 Using Go1.22.3
 
 How to run:
+- Please make sure your IDE can support Go. (use extension if needed)
 - Please make sure to have Go installed, recommended go1.20.xx ++
 - Please make sure to have Postgresql installed, recommended postgresql v12.xx ++
 - Please make sure to have local database or running database connection
